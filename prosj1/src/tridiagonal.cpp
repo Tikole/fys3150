@@ -9,7 +9,7 @@ arma::vec solve_tridiagonal(arma::mat A, arma::vec g) {
     const int n = A.n_rows;
     //The first row has no subdiagonal element, it only needs scaling.
     A(0,1) /= A(0,0);
-    g(0) /= A(0,0;)
+    g(0) /= A(0,0);
     // From top to bottom eliminate the subdiagonal element fromy every row
     // and scale to normalize pivot element.
     for (int i = 1; i < n; ++i) {

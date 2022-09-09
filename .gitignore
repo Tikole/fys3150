@@ -1,3 +1,4 @@
 *.png
 *.exe
 hubtoken.txt
+*output*.txt

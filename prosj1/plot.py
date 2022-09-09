@@ -7,7 +7,7 @@ def read_file(f):
         lines = file.readlines()
         n = len(lines)
         X = np.zeros(n)
-        Y = np.zeros_llike(X)
+        Y = np.zeros_like(X)
         for i in range(len(lines)):
             X[i], Y[i] = lines[i].split()
     return X, Y
@@ -20,7 +20,7 @@ for f in files:
 
 plt.xlabel("x")
 plt.ylabel("y")
-Xa, Ya = read_file("analytical_output.txt", 'r')
+Xa, Ya = read_file("analytical_output.txt")
 plt.plot(Xa,Ya,label="u(x)")
 for l in L:
     plt.plot(l[0], l[1], label=l[2])
