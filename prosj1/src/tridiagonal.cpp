@@ -10,14 +10,18 @@ arma::vec solve_tridiagonal(arma::mat A, arma::vec g) {
     //The first row has no subdiagonal element, it only needs scaling.
     A(0,1) /= A(0,0);
     g(0) /= A(0,0);
-    // From top to bottom eliminate the subdiagonal element fromy every row
+    // From top to bottom, except last row, eliminate the subdiagonal element fromy every row
     // and scale to normalize pivot element.
-    for (int i = 1; i < n; ++i) {
-        g(i) = (g(i) - g(i-1)*A(i, i-1))/(A(i,i) - A(i-1,i)*A(i,i-1));
+    for (int i = 1; i < n-1; ++i) {
+        g(i) = (g(i) - A(i, i-1)*g(i-1))/(A(i,i) - A(i,i-1)*A(i-1,i));
+        A(i,i+1) /= (A(i,i) - A(i,i-1)*A(i-1,i));
     }
+    // Last row has no superdiagonal, must be handled specially to avoid out of bounds.
+    int i = n - 1;
+    g(i) = (g(i) - A(i,i-1)*g(i-1))/(A(i,i) - A(i,i-1)*A(i-1,i));
     // Eliminate superdiagonal elements second bottommost to top.
-    for (int i = n-2; i > 0; --i) {
-        g(i) -= g(i-1)*A(i-1,i);
+    for (int i = n-2; i >= 0; --i) {
+        g(i) -= g(i+1)*A(i,i+1);
     }
 
     return g;

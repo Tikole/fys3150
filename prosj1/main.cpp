@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
     for (auto it = n_discreet.begin(); it != n_discreet.end(); ++it) {
         int n = *it; // Number of elements of solution
         /* Set up coefficient matrix. */
-        arma::mat A(n-2, n-2);
+        arma::mat A(n-2, n-2, arma::fill::zeros);
         A(0,0) = 2;
         A(0,1) = -1;
         for (int i = 1; i < A.n_rows - 1; ++i) {
@@ -96,9 +96,8 @@ int main(int argc, char* argv[]){
         double dx = (x1 - x0)/(n-1);
         for (int i = 0; i < g.n_rows; ++i) {
             X(i) = x0 + (i + 1)*dx; 
-            g(i) = -f(X(i))/std::pow(dx,2); 
+            g(i) = f(X(i))*std::pow(dx,2); 
         }
-
         arma::vec solution = solve_tridiagonal(A, g);
         std::fstream output(
             "discretized_output_" + std::to_string(n) + ".txt",
