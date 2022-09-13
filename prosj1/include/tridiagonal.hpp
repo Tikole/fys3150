@@ -4,4 +4,6 @@
 
 #include<armadillo>
 
-arma::vec solve_tridiagonal(arma::mat A, arma::vec g);
+void solve_tridiagonal(arma::vec& a, arma::vec& b, arma::vec& c, arma::vec& g);
+
+void solve_special(arma::vec& g);
