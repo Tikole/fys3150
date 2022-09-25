@@ -137,13 +137,24 @@ int jacobi_method(arma::mat& M, arma::vec& eigval, arma::mat& eigvec, double eps
         }
     }
 
-    return (it <= max_it) ? (it) : (-it); // If surpassed maximum allowed iterations return -it as sign of failure
+    return (it <= max_it) ? (it) : (-max_it); // If surpassed maximum allowed iterations return -it as sign of failure
 }
 
-void scaling_test(int N, std::string mt){
-    if (mt != std::string("scaling") && mt != std::string("densescaling"))
-        throw std::invalid_argument("Invalid matrix type");
-    std::string type = (mt == std::string("scaling")) 
+void analytical_solution(int N, arma::vec& eigval, arma::mat& eigvec) {
+    eigval.set_size(N);
+    eigvec.set_size(N,N);
+
+    for (int i = 1; i <= N; ++i) {
+        eigval(i-1) = 2*(1 - std::cos((i*pi)/(N+1.0)));
+        for (int j = 1; j <= N; ++j) {
+            eigvec(j-1,i-1) = std::sin((i*j*pi)/(N+1));
+        }
+    }
+    eigvec = arma::normalise(eigvec);
+}
+
+void scaling_test(int N, MatrixType mt){
+    std::string type = (mt == TRIDIAGONAL) 
         ? (std::string("tridiagonal symmetric")) : (std::string("dense symmetric"));
     std::cout << "Using Jacobi method to calculate eigenvalues/-vectors\n"
               << "for NxN matrix of type: " << type << "\n---\n";
@@ -152,14 +163,14 @@ void scaling_test(int N, std::string mt){
     arma::ivec sl = arma::zeros<arma::ivec>(Nl.n_elem);
     for (int i=0; i<Nl.n_elem; ++i) { 
         int n = Nl(i);
-        std::string type = (mt == std::string("scaling"))
+        std::string type = (mt == TRIDIAGONAL)
             ? ("tridiagonal symmetric") : ("dense symmetric");
         std::cout << "N = " << n << "\n";
         std::cout << "Solving...\n";
         arma::mat A(n,n);
         arma::vec eigval;
         arma::mat eigvec;
-        if (mt == std::string("scaling"))
+        if (mt == TRIDIAGONAL)
             make_tridiag(-1,2,-1,A);
         else
             make_dense_symmetric(A);
@@ -182,9 +193,9 @@ void scaling_test(int N, std::string mt){
     }
     std::fstream file;
     std::string filename =
-        (mt == std::string("scaling")) ? ("scaling_tridiag.txt") : ("scaling_dense.txt");
+        (mt == TRIDIAGONAL) ? ("scaling_tridiag.txt") : ("scaling_dense.txt");
     file.open(filename, std::ios::out | std::ios::trunc);
-    int d = std::numeric_limits<double>::digits10; // Use all the precision we have
+    int d = std::numeric_limits<double>::digits10; // Use all possible precision.
     file << std::scientific << std::setprecision(d);
     for (int i=0; i<Nl.n_elem; ++i){
         if (sl(i) > 0)
@@ -210,16 +221,10 @@ int test_1() {
     eigvec = arma::normalise(eigvec);
 
     /* Calculate the correct results using an anlytical formula.*/
-    arma::vec correct_eigval(N);
-    arma::mat correct_eigvec(N,N);
+    arma::vec correct_eigval;
+    arma::mat correct_eigvec;
 
-    for (int i = 1; i <= N; ++i) {
-        correct_eigval(i-1) = 2*(1 - std::cos((i*pi)/(N+1.0)));
-        for (int j = 1; j <= N; ++j) {
-            correct_eigvec(j-1,i-1) = std::sin((i*j*pi)/(N+1));
-        }
-    }
-    correct_eigvec = arma::normalise(correct_eigvec);
+    analytical_solution(N, correct_eigval, correct_eigvec);
 
     /* Compare eigenvalues. */
     int errors = 0;
@@ -274,37 +279,8 @@ int test_3() {
     /* Correct values using analytical formula. */
     arma::vec correct_eigvals(N);
     arma::mat correct_eigvecs(N,N);
-    for (int i = 1; i <= N; ++i) {
-        correct_eigvals(i-1) = 2*(1 - std::cos((i*pi)/(N+1.0)));
-        for (int j = 1; j <= N; ++j) {
-            correct_eigvecs(j-1,i-1) = std::sin((i*j*pi)/(N+1));
-        }
-    }
-    correct_eigvecs = arma::normalise(correct_eigvecs);
-
-    // arma::vec correct_eigvals_2;
-    // arma::mat correct_eigvecs_2;
-    // arma::eig_sym(correct_eigvals_2, correct_eigvecs_2, M2);
-    // correct_eigvecs_2 = arma::normalise(correct_eigvecs_2);
-
-    // std::cout << "Calculated eigenvalues:\n";
-    // eigvals.print();
-    // std::cout << "\n---\n";
-    // std::cout << "Correct eigenvalues:\n";
-    // correct_eigvals.print();
-    // std::cout << "\n---\n";
-    // std::cout << "Arma eigenvalues:\n";
-    // correct_eigvals_2.print();
-    // std::cout << "\n---\n";
-    // std::cout << "Calculated eigenvectors:\n";
-    // eigvecs.print();
-    // std::cout << "\n---\n";
-    // std::cout << "Correct eigenvectors:\n";
-    // correct_eigvecs.print();
-    // std::cout << "\n---\n";
-    // std::cout << "Arma eigenvectors:\n";
-    // correct_eigvecs_2.print();
-    // std::cout << "\n---\n";
+    
+    analytical_solution(N, correct_eigvals, correct_eigvecs);
 
     /* Compare eigenvalues. */
     int errors = 0;
