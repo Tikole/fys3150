@@ -11,7 +11,17 @@
 
 
 void print_usage() {
-    std::cout << "NOT YET IMPLEMENTED" << std::endl;
+    std::cout << "Commands:" << std::endl
+              << "- 'test': Run battery of tests\n\n"
+              << "- 'scaling <int>' : Tests scaling of Jacobi's method for matrix\n"
+                 "   sizes upto NxN, where N is the single integer argument. Writes"
+                 "   results to two files: 'scaling_tridiag.txt' and 'scaling_dense.txt'\n"
+                 "   to be plotted with 'plot.py'.\n\n"
+                 "- 'solve <int>' : Solves the eigenvalues/-vectors of a symmetric tridiagonal\n"
+                 "   matrix of dimensions NxN, where N is the single integer argument,\n"
+                 "   using Jacobi's method. And writes result to file 'solution_<n>.txt'\n"
+                 "   together with those provided by an anlytical solution.\n" 
+                 "   Plot data with 'plot.py'.\n";
 }
 
 int main(int argc, char* argv[]) {
