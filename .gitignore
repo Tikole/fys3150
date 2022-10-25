@@ -2,3 +2,4 @@
 *.exe
 hubtoken.txt
 *output*.txt
+*.pdf
