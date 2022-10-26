@@ -10,11 +10,24 @@ const double T_conversion_factor = 9.64852558e1; // From tesla
 const double mV_conversion_factor = 9.64852558e4; // From millivolt
 /*Coulomb constant in [u um^3/us^2 e^2]*/
 const double k_e = 1.38935333e5;
+/* Pi */
+const double pi = 3.14159265358979323846;
 
 // *** class Particle ***
+Particle::Particle()
+    : m(1), q(1)
+{
+
+}
 Particle::Particle(double mass, double charge, arma::vec position, arma::vec velocity)
     : m(mass), q(charge), r(position), v(velocity) /* a is initiallized by PenningTrap*/
 {}
+Particle::Particle(double mass, double charge, double sr, double sv)
+    : m(mass), q(charge)
+{
+    r = arma::vec(3).randn() * sr;
+    v = arma::vec(3).randn() * sv;
+}
 std::string Particle::s() const {
     std::stringstream ss;
     ss << "r: (" << r[0] << ' ' << r[1] << ' ' << r[2] << "), "
@@ -30,23 +43,29 @@ PenningTrap::PenningTrap()
       np(1)
 {
     p.shrink_to_fit();
-    accel();
+    update_accel();
+    update_voltage();
 }
 PenningTrap::PenningTrap(double B0, double V0, double d0, Particles pv, bool b)
-    : t(0.0), coulomb(b), B(B0*T_conversion_factor), V(V0*mV_conversion_factor), d(d0),
-      p(pv), np(pv.size())
+    : t(0.0), coulomb(b), B(B0*T_conversion_factor), d(d0), p(pv), np(pv.size()),
+      VF_V_mean(V0*mV_conversion_factor), VF_A(0), VF_om(0), VF_ph(0)
 {
     p.shrink_to_fit(); // Number of particles is constant.
-    accel(); // Set initial acceleration of particles.
+    update_accel(); // Set initial acceleration of particles.
+    update_voltage();
+}
+PenningTrap::PenningTrap(double B0, double V0, double VF_freq, double VF_Amp,
+                         double VF_phase, double d0, Particles pv, bool b)
+    : t(0.0), coulomb(b), B(B0*T_conversion_factor), VF_V_mean(V0*mV_conversion_factor), d(d0),
+      p(pv), np(pv.size()), VF_A(VF_Amp), VF_om(2*pi*VF_freq),
+      VF_ph(VF_phase) 
+{
+    p.shrink_to_fit(); // Number of particles is constant.
+    update_accel(); // Set initial acceleration of particles.
+    update_voltage();
 }
 
 // Iterators over particles
-particle_it PenningTrap::begin() {
-    return p.begin();
-}
-particle_it PenningTrap::end() {
-    return p.end();
-}
 const_particle_it PenningTrap::cbegin() const {
     return p.cbegin();
 }
@@ -101,8 +120,9 @@ void PenningTrap::step(double h, PenningTrap& next, const arma::mat& V, const ar
     for (int i = 0; i < np; ++i) {
         next.p[i].r = p[i].r + V.col(i)*h;
         next.p[i].v = p[i].v + A.col(i)*h;
-        next.accel();
     }
+    next.update_accel();
+    next.update_voltage();
 }
 
 void PenningTrap::add_acceleration(arma::mat& A, double c) const {
@@ -129,7 +149,7 @@ void PenningTrap::assign_velocity(arma::mat& V, double c) const {
 }
 
 // Acceleration:
-void PenningTrap::accel() {
+void PenningTrap::update_accel() {
     for (int i = 0; i < np; ++i) {
         // Initialize force vector with Lorentz force.
         arma::vec F = p[i].q * (EF(p[i].r) + arma::cross(p[i].v, MF(p[i].r)));
@@ -145,6 +165,9 @@ void PenningTrap::accel() {
         }
         p[i].a = F/(p[i].m);
     }
+}
+void PenningTrap::update_voltage() {
+    V = VF_V_mean * (1 + VF_A*std::cos(VF_om*t + VF_ph));
 }
 
 // Examination functions
@@ -172,6 +195,13 @@ int PenningTrap::n_particles() const {
 }
 double PenningTrap::time() const {
     return t;
+}
+int PenningTrap::n_trapped() const {
+    int n = 0;
+    for (auto it = p.cbegin(); it != p.cend(); ++it) {
+        n += (arma::dot(it->r, it->r) < d*d);
+    }
+    return n;
 }
 
 // Output functions:

@@ -134,6 +134,9 @@ class Analytic:
 ana = Analytic(20.0, 20.0, 25.0, 1.0, 25*9.64852558e4, 1.0*9.64852558e1, 40.078, 500)    
 
 def plot_analytic_rel_error(*D):
+    """
+    Plots relative errors of objects in compared to the exact solution of the analytical case.
+    """
     D = sorted(D, key=lambda D: len(D['t']) - 1)
     max_err = np.zeros(len(D))
     h = np.zeros(len(D))
@@ -159,6 +162,9 @@ def plot_analytic_rel_error(*D):
     plt.savefig("rel_err.pdf")
 
 def plot_compare_analytic_case(d):
+    """
+    Plots trajectory of d together with analytical case.
+    """
     t = d['t']
     r = d['r']
     exact = ana(t)
@@ -178,6 +184,10 @@ def plot_compare_analytic_case(d):
     plt.legend()
     plt.savefig("cmpana_xy.pdf")
 
+def plot_resfreq():
+    """
+    
+    """
 
 def menu():
     print("Plot types are identified by string before ':'")

@@ -16,7 +16,7 @@ const double def_y0 = 0.0;
 const double def_z0 = 20.0;
 const double def_vx0 = 0.0; // [um/us]
 const double def_vy0 = 25.0;
-const double def_vz0 = 0.0; 
+const double def_vz0 = 0.0;
 
 class Particle {
     public:
@@ -26,6 +26,9 @@ class Particle {
         arma::vec v; // Velocity [um/us]
         arma::vec a; // Acceleration [um/us^2]
 
+        // With random position/velocity centered on (0,0,0) with given std.dev.
+        Particle(); 
+        Particle(double mass, double charge, double sigma_r, double sigma_v);
         Particle(double mass, double charge, arma::vec position, arma::vec velocity);
         std::string s() const;
 };
@@ -44,8 +47,12 @@ class PenningTrap {
     public:
         bool coulomb; // Include Coulomb force?
         double t; // Time of state [us]
-        double B; // Strength of magnetic field [u/(us e)]
-        double V; // Electric potential [(u um^2)/(us^2 e)]
+        double B; // Strength of magnetic field [u/us e]
+        double V; // Voltage [u um^2/us^2 e]
+        double VF_V_mean; // Mean voltage
+        double VF_A; // Amplitude of voltage fluctuations (VF) proportion of mean voltage.
+        double VF_om; // Angular freq. of VF [rad/us]
+        double VF_ph; // Initial phase of VF [rad]
         double d; // Characteristic length [um]
         int np; // Number of particles in simulations. 
         Particles p;
@@ -68,20 +75,27 @@ class PenningTrap {
         void assign_acceleration(arma::mat& A, double c=1.0) const;
         void assign_velocity(arma::mat& V, double c=1.0) const;
 
-        void accel(); // Calculate acceleration of particles.
+        void update_accel(); // Calculate acceleration of particles.
+        void update_voltage(); // Calculate voltage
     public:
         /* Constructors:*/
         // Constructs analytical test case: 
         PenningTrap();
-        /* Construct Penning trap with particles.
+        /* Constant electric field Penning trap with particles.
         - B0: magnetic field strength in T
         - V0: voltage in mV
         - d0: characteristic length in um */
         PenningTrap(double B0, double V0, double d0, Particles, bool coulomb=true);
+        /* Sinusoidally varying electric field according to:
+          V(t) = V0*(1 + A*cos(2pi*f + VF_ph))
+        - V0: mean voltage [mV]
+        - VF_f: frequency of voltage fluctuations (VF) [MHz]
+        - VF_A: amplitude of VF [mV]
+        - VF_ph: initial phase of VF [rad] */
+        PenningTrap(double B0, double V0, double VF_f, double VF_A,
+                    double VF_ph, double d0, Particles pv, bool coulomb=true);
 
         /* Iterators for examining particles */
-        particle_it begin();
-        particle_it end();
         const_particle_it cbegin() const;
         const_particle_it cend() const;
 
@@ -100,6 +114,7 @@ class PenningTrap {
         bool is_coulomb() const; // Are coulomb interactions in effect?
         int n_particles() const; // Number of particles in simulation
         double time() const; // Time of state
+        int n_trapped() const; // Number of particles still trapped.
 
         /* Writes the state to an output filestream. */
         void write_state(std::fstream& stream) const;
