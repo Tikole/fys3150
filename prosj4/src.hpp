@@ -2,41 +2,35 @@
 
 // Structure holding parameters for a call to multirun() 
 struct Parameters {
-    arma::ivec Lvec;
+    int L;
     arma::vec Tvec;
     bool randomize;
-    int max_cycles;
-    int runs_per_set;
+    int runs;
+    double max_chunks;
+    double target_chunks;
     int chunk_sz;
-    int target_chunks;
+    int sample_frequency;
     double epsilon;
 
     // Constructs default parameters
-    Parameters(
-        randomize = true;
-        max_cycles = 1000;
-        runs_per_set = 8;
-        chunk_sz = 50;
-        target_chunks = 1000;
-        epsilon = 1e-4;
-    );
-}
+    Parameters();
+};
 
 /*
 Runs multiple Markov Chain Monte Carlo calculations on Ising lattices, and
 writes to disk. */
 void multirun(Parameters P);
 /* Parameters members:
-     .Lvec : Lattice side lengths [number of spins]
+     .L : Lattice side length [number of spins]
      .Tvec : Temperatures [J/k_b]
      .ramdomize : true -> random initial state, false -> all-spins-up initial state
-     .max_cycles : Limits number of cycles if equilibrium is not reached.
-     .runs_per_set : Indenpendent runs to make for each combination of T and L
-     .chunk_sz : Number of cycles to average for determining convergence
-     .target_chunks : Target number of chunks to sample after reaching equilibrium
-     .epsilon : width of epsilon sausage, the system will be deemed equilibrated when
+     .runs : Indenpendent runs to make for each combination of T and L
+     .max_chunks : Limits number of chunks if equilibrium is not reached.
+     .target_cycles : Target number of chunks to run after reaching equilibrium for each run
+     .chunk_sz : Number of samples to average for determining equilibrium
+     .sample_frequency : Number of flips to make for every sample
+     .epsilon : Width of epsilon sausage, the system will be deemed equilibrated when
                 std. dev. of a certain number of chunks' average energy per spin falls
                 within. Units of smallest possible change to energy of lattice. If zero
-                each lattice is run for exactly max_cycles.
-
+                each lattice is run for max_cycles.
 */
