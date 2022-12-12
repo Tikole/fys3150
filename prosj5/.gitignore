@@ -1,0 +1,6 @@
+*.png
+*.pdf
+junk*
+.vscode/
+*.hdf5
+slitex

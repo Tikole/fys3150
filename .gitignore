@@ -1,5 +1,6 @@
 *.png
 *.exe
+.vscode/
 hubtoken.txt
 *output*.txt
 *.pdf
